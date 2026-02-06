@@ -53,14 +53,35 @@ export const useAuthProvider = () => {
   });
 
   useEffect(() => {
-    // Check initial session
+    // Check initial session with timeout
     const initAuth = async () => {
-      const user = await getCurrentUser();
-      setState({
-        user,
-        isLoading: false,
-        isAuthenticated: !!user,
-      });
+      try {
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise<null>((_, reject) =>
+          setTimeout(() => reject(new Error("Auth timeout")), 5000),
+        );
+
+        const user = await Promise.race([
+          getCurrentUser(),
+          timeoutPromise,
+        ]).catch((error) => {
+          console.log("Auth init error or timeout:", error.message);
+          return null;
+        });
+
+        setState({
+          user,
+          isLoading: false,
+          isAuthenticated: !!user,
+        });
+      } catch (error) {
+        console.error("Auth initialization failed:", error);
+        setState({
+          user: null,
+          isLoading: false,
+          isAuthenticated: false,
+        });
+      }
     };
 
     initAuth();
@@ -142,14 +163,12 @@ export const useAuthProvider = () => {
 };
 
 // AuthProvider component
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const auth = useAuthProvider();
-  
-  return (
-    <AuthContext.Provider value={auth}>
-      {children}
-    </AuthContext.Provider>
-  );
+
+  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
 };
 
 export { AuthContext };

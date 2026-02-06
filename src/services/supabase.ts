@@ -3,7 +3,7 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
-import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ============ Environment Configuration ============
 // Uses environment variables from .env file
@@ -13,28 +13,29 @@ const SUPABASE_ANON_KEY =
   process.env.SUPABASE_ANON_KEY ||
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRldWtpcG5taWNhdXpsb2VndnRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MDQ4MzIsImV4cCI6MjA4NTM4MDgzMn0.pEg1v4eX-yggM44vPUatLWAQPonVmy9GlnihV424S2k";
 
-// ============ Secure Storage Adapter for Auth ============
-const ExpoSecureStoreAdapter = {
+// ============ AsyncStorage Adapter for Auth ============
+// Using AsyncStorage instead of SecureStore for better compatibility
+const AsyncStorageAdapter = {
   getItem: async (key: string): Promise<string | null> => {
     try {
-      return await SecureStore.getItemAsync(key);
+      return await AsyncStorage.getItem(key);
     } catch (error) {
-      console.error("SecureStore getItem error:", error);
+      console.error("AsyncStorage getItem error:", error);
       return null;
     }
   },
   setItem: async (key: string, value: string): Promise<void> => {
     try {
-      await SecureStore.setItemAsync(key, value);
+      await AsyncStorage.setItem(key, value);
     } catch (error) {
-      console.error("SecureStore setItem error:", error);
+      console.error("AsyncStorage setItem error:", error);
     }
   },
   removeItem: async (key: string): Promise<void> => {
     try {
-      await SecureStore.deleteItemAsync(key);
+      await AsyncStorage.removeItem(key);
     } catch (error) {
-      console.error("SecureStore removeItem error:", error);
+      console.error("AsyncStorage removeItem error:", error);
     }
   },
 };
@@ -42,7 +43,7 @@ const ExpoSecureStoreAdapter = {
 // ============ Supabase Client ============
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    storage: ExpoSecureStoreAdapter,
+    storage: AsyncStorageAdapter,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
