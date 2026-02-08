@@ -92,8 +92,7 @@ const ReviewScreen: React.FC = () => {
         onPress: () => {
           const updated = editedWords.filter((_, i) => i !== index);
           setEditedWords(updated);
-          selectedWords.delete(index);
-          // Re-index selected words
+          // Re-index selected words (create new Set without mutating state)
           const newSelected = new Set<number>();
           selectedWords.forEach((i) => {
             if (i < index) newSelected.add(i);

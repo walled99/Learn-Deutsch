@@ -15,7 +15,6 @@ import {
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import {
   ScreenContainer,
   Header,
@@ -36,7 +35,6 @@ import {
   RADIUS,
   SHADOWS,
   getArticleColor,
-  getMasteryColor,
   getCategoryColor,
 } from "../../theme";
 import type {
@@ -150,7 +148,6 @@ const VocabularyDetailScreen: React.FC = () => {
 
   const articleColor = getArticleColor(vocabulary.article);
   const categoryColor = getCategoryColor(vocabulary.category);
-  const statusColor = getMasteryColor(vocabulary.status);
 
   return (
     <ScreenContainer safeArea padding={false}>

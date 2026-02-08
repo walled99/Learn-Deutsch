@@ -13,10 +13,11 @@ A German vocabulary learning app powered by AI image text extraction. Capture Ge
 
 ## Tech Stack
 
-- **Framework**: React Native with Expo SDK 50
-- **Language**: TypeScript
-- **Navigation**: React Navigation 6
+- **Framework**: React Native 0.81 with Expo SDK 54
+- **Language**: TypeScript 5.9
+- **Navigation**: React Navigation 7
 - **Backend**: Supabase (Auth, Database, Storage)
+- **Auth Storage**: expo-secure-store (device-encrypted)
 - **Styling**: Custom design system with gradients
 
 ## Project Structure
@@ -45,7 +46,7 @@ LernDeutschAI/
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - npm or yarn
 - Expo CLI (`npm install -g expo-cli`)
 - iOS Simulator or Android Emulator (or physical device with Expo Go)
@@ -53,18 +54,22 @@ LernDeutschAI/
 ### Installation
 
 1. **Install dependencies**:
+
    ```bash
    cd LernDeutschAI
    npm install
    ```
 
 2. **Configure environment**:
+
    ```bash
    cp .env.example .env
    ```
+
    Fill in your Supabase credentials in `.env`
 
 3. **Start the development server**:
+
    ```bash
    npm start
    # or
@@ -102,7 +107,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 - **Grammar Colors**:
   - der (Masculine): Blue (#3B82F6)
   - die (Feminine): Pink (#EC4899)
-  - das (Neuter): Green (#22C55E)
+  - das (Neuter): Green (#10B981)
 
 ### Word Categories
 

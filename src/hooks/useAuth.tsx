@@ -53,21 +53,10 @@ export const useAuthProvider = () => {
   });
 
   useEffect(() => {
-    // Check initial session with timeout
+    // Check initial session - no timeout for persistent login
     const initAuth = async () => {
       try {
-        // Add timeout to prevent infinite loading
-        const timeoutPromise = new Promise<null>((_, reject) =>
-          setTimeout(() => reject(new Error("Auth timeout")), 5000),
-        );
-
-        const user = await Promise.race([
-          getCurrentUser(),
-          timeoutPromise,
-        ]).catch((error) => {
-          console.log("Auth init error or timeout:", error.message);
-          return null;
-        });
+        const user = await getCurrentUser();
 
         setState({
           user,

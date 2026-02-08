@@ -8,7 +8,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS } from "../../theme";

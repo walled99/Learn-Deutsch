@@ -2,17 +2,23 @@
  * LernDeutsch AI - Environment Configuration
  *
  * These values are loaded from environment variables at build time.
- * In development, you can set them in .env file.
+ * In development, set them in .env file with the EXPO_PUBLIC_ prefix.
+ *
  */
 
 // Supabase Configuration
-export const SUPABASE_URL =
-  process.env.SUPABASE_URL || "https://teukipnmicauzloegvtk.supabase.co";
-export const SUPABASE_ANON_KEY =
-  process.env.SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRldWtpcG5taWNhdXpsb2VndnRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MDQ4MzIsImV4cCI6MjA4NTM4MDgzMn0.pEg1v4eX-yggM44vPUatLWAQPonVmy9GlnihV424S2k";
+export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? "";
+export const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? "";
 export const SUPABASE_STORAGE_BUCKET =
-  process.env.SUPABASE_STORAGE_BUCKET_SOURCE_IMAGES || "source-images";
+  process.env.EXPO_PUBLIC_SUPABASE_STORAGE_BUCKET ?? "source-images";
+
+// Validate required env vars at startup
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.warn(
+    "[LernDeutsch] Missing Supabase environment variables. " +
+      "Please set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in your .env file.",
+  );
+}
 
 // App Configuration
 export const APP_NAME = "LernDeutsch AI";
@@ -25,4 +31,4 @@ export const ENABLE_DEBUG_LOGGING =
 export const ENABLE_MOCK_DATA = false;
 
 // AI Configuration (for Phase 3)
-export const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+export const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY ?? "";
