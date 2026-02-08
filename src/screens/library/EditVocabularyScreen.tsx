@@ -11,6 +11,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -325,7 +326,11 @@ const StatusOption: React.FC<StatusOptionProps> = ({
   const config = getStatusConfig();
 
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onSelect}
+      accessibilityRole="button"
+      accessibilityLabel={`Set status to ${status}`}
       style={[
         styles.statusOption,
         selected
@@ -335,7 +340,6 @@ const StatusOption: React.FC<StatusOptionProps> = ({
             }
           : undefined,
       ]}
-      onTouchEnd={onSelect}
     >
       <Ionicons
         name={config.icon as any}
@@ -350,7 +354,7 @@ const StatusOption: React.FC<StatusOptionProps> = ({
       >
         {status}
       </Text>
-    </View>
+    </TouchableOpacity>
   );
 };
 

@@ -3,39 +3,79 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config/env";
 
-// ============ Environment Configuration ============
-// Uses environment variables from .env file
-const SUPABASE_URL =
-  process.env.SUPABASE_URL || "https://teukipnmicauzloegvtk.supabase.co";
-const SUPABASE_ANON_KEY =
-  process.env.SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRldWtpcG5taWNhdXpsb2VndnRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MDQ4MzIsImV4cCI6MjA4NTM4MDgzMn0.pEg1v4eX-yggM44vPUatLWAQPonVmy9GlnihV424S2k";
+// ============ SecureStore Chunked Adapter for Auth ============
+// SecureStore has a 2048-byte limit per key, but Supabase session
+// JSON can be larger. This adapter splits values into chunks.
+const CHUNK_SIZE = 1800; // stay safely under 2048 bytes
 
-// ============ AsyncStorage Adapter for Auth ============
-// Using AsyncStorage instead of SecureStore for better compatibility
-const AsyncStorageAdapter = {
+function getChunkKey(key: string, index: number): string {
+  return index === 0 ? key : `${key}__chunk_${index}`;
+}
+
+const SecureStoreAdapter = {
   getItem: async (key: string): Promise<string | null> => {
     try {
-      return await AsyncStorage.getItem(key);
+      const firstChunk = await SecureStore.getItemAsync(key);
+      if (firstChunk === null) return null;
+
+      // Check if there are additional chunks
+      let result = firstChunk;
+      let index = 1;
+      while (true) {
+        const chunk = await SecureStore.getItemAsync(getChunkKey(key, index));
+        if (chunk === null) break;
+        result += chunk;
+        index++;
+      }
+      return result;
     } catch (error) {
-      console.error("AsyncStorage getItem error:", error);
+      console.error("SecureStore getItem error:", error);
       return null;
     }
   },
   setItem: async (key: string, value: string): Promise<void> => {
     try {
-      await AsyncStorage.setItem(key, value);
+      // Split value into chunks that fit within SecureStore limits
+      const chunks: string[] = [];
+      for (let i = 0; i < value.length; i += CHUNK_SIZE) {
+        chunks.push(value.slice(i, i + CHUNK_SIZE));
+      }
+
+      // Write all chunks
+      for (let i = 0; i < chunks.length; i++) {
+        await SecureStore.setItemAsync(getChunkKey(key, i), chunks[i]);
+      }
+
+      // Clean up any leftover chunks from a previously longer value
+      let cleanupIndex = chunks.length;
+      while (true) {
+        const old = await SecureStore.getItemAsync(
+          getChunkKey(key, cleanupIndex),
+        );
+        if (old === null) break;
+        await SecureStore.deleteItemAsync(getChunkKey(key, cleanupIndex));
+        cleanupIndex++;
+      }
     } catch (error) {
-      console.error("AsyncStorage setItem error:", error);
+      console.error("SecureStore setItem error:", error);
     }
   },
   removeItem: async (key: string): Promise<void> => {
     try {
-      await AsyncStorage.removeItem(key);
+      // Remove base key and all chunks
+      await SecureStore.deleteItemAsync(key);
+      let index = 1;
+      while (true) {
+        const chunk = await SecureStore.getItemAsync(getChunkKey(key, index));
+        if (chunk === null) break;
+        await SecureStore.deleteItemAsync(getChunkKey(key, index));
+        index++;
+      }
     } catch (error) {
-      console.error("AsyncStorage removeItem error:", error);
+      console.error("SecureStore removeItem error:", error);
     }
   },
 };
@@ -43,7 +83,7 @@ const AsyncStorageAdapter = {
 // ============ Supabase Client ============
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    storage: AsyncStorageAdapter,
+    storage: SecureStoreAdapter,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
