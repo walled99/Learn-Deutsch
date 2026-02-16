@@ -9,11 +9,14 @@ This document describes the exact steps to initialize, configure, and secure the
 ## Step 1: Initialize the Project
 
 ### 1.1 Create a Supabase Project
+
 - Open the [Supabase Dashboard](https://app.supabase.com/).
 - Click **New Project** and follow the instructions.
 
 ### 1.2 Save Credentials Securely
+
 After project creation, securely store the following:
+
 - **Project Password**
 - **Anon API Key**
 - **Service Role API Key**
@@ -21,7 +24,8 @@ After project creation, securely store the following:
 > ⚠️ These keys are required for backend access and **must never be exposed publicly**.
 
 ### 1.3 Set Project Region
-- **Region:** Frankfurt (eu-central-1)  
+
+- **Region:** Frankfurt (eu-central-1)
 - **Reason:** Hosting in Frankfurt reduces latency for Germany-focused users.
 
 ---
@@ -31,7 +35,9 @@ After project creation, securely store the following:
 All database structures are created using the **Supabase SQL Editor**.
 
 ### 2.1 Purpose
+
 This schema:
+
 - Enforces strict data integrity
 - Matches functional requirements FR-3.2 and FR-5
 - Prevents duplicate vocabulary entries
@@ -46,20 +52,19 @@ CREATE TYPE gender_article AS ENUM ('der', 'die', 'das');
 CREATE TYPE helper_verb AS ENUM ('haben', 'sein');
 2.3 Create the vocabulary Table
 CREATE TABLE vocabulary (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  word TEXT NOT NULL,
-  article gender_article,
-  plural TEXT,
-  helper_verb helper_verb,
-  past_participle TEXT,
-  translation TEXT NOT NULL,
-  example TEXT,
-  category word_category NOT NULL,
-  status mastery_status DEFAULT 'New',
-  image_url TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(user_id, word, category)  -- Prevent duplicate entries for the same user
+id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+word TEXT NOT NULL,
+article gender_article,
+plural TEXT,
+helper_verb helper_verb,
+past_participle TEXT,
+translation TEXT NOT NULL,
+example TEXT,
+category word_category NOT NULL,
+status mastery_status DEFAULT 'New',
+created_at TIMESTAMPTZ DEFAULT NOW(),
+UNIQUE(user_id, word, category) -- Prevent duplicate entries for the same user
 );
 Key Design Decisions:
 
@@ -69,14 +74,12 @@ UNIQUE(user_id, word, category) prevents duplicates per user.
 
 Optional grammar fields support German language structure.
 
-image_url links vocabulary back to source images.
-
 2.4 Create the profiles Table
 CREATE TABLE profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  display_name TEXT,
-  avatar_url TEXT,
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+display_name TEXT,
+avatar_url TEXT,
+updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 Step 3: Security & Row Level Security (RLS)
 3.1 Purpose
@@ -98,23 +101,21 @@ Queries are automatically filtered by auth.uid()
 
 No client-side filtering required
 
-Step 4: Storage Setup (Image Capture)
-Navigate to Storage in Supabase.
+Step 4: Profiles Table Policies
 
-Create a bucket named: source-images
+Run these policies so users can read, create, and update their own profile:
 
-Set visibility to Private
+CREATE POLICY "Users can read own profile"
+ON profiles FOR SELECT
+USING (auth.uid() = id);
 
-Only the uploading user should access their images.
+CREATE POLICY "Users can insert own profile"
+ON profiles FOR INSERT
+WITH CHECK (auth.uid() = id);
 
-Step 5: Storage Policies
-Ensure users:
-
-Can upload images
-
-Can view only their own images
-
-Cannot access other users’ files
+CREATE POLICY "Users can update own profile"
+ON profiles FOR UPDATE
+USING (auth.uid() = id);
 
 5.1 Create the "Insert" (Upload) Policy
 Click New Policy → Full Customization
@@ -143,9 +144,9 @@ Check Expression: auth.uid() = owner
 Save policy.
 
 5.3 Policy Summary
-Policy Type	Operation	Who Can Do It	Which Files
-Insert	Upload	Authenticated users	Only files they own
-Select	View	Authenticated users	Only files they uploaded
+Policy Type Operation Who Can Do It Which Files
+Insert Upload Authenticated users Only files they own
+Select View Authenticated users Only files they uploaded
 ✅ Final Result
 Each user has fully isolated data.
 

@@ -77,7 +77,6 @@ export const fetchVocabularyById = async (
  */
 export const createVocabulary = async (
   formData: VocabularyFormData,
-  imageUrl?: string,
 ): Promise<VocabularyResult> => {
   try {
     const {
@@ -99,7 +98,6 @@ export const createVocabulary = async (
         example: formData.example?.trim() || null,
         category: formData.category,
         status: formData.status || "New",
-        image_url: imageUrl || null,
       })
       .select()
       .single();
@@ -178,7 +176,6 @@ export const deleteVocabulary = async (
  */
 export const bulkCreateVocabulary = async (
   items: VocabularyFormData[],
-  imageUrl?: string,
 ): Promise<VocabularyResult> => {
   try {
     const {
@@ -198,7 +195,6 @@ export const bulkCreateVocabulary = async (
       example: item.example?.trim() || null,
       category: item.category,
       status: item.status || "New",
-      image_url: imageUrl || null,
     }));
 
     const { data, error } = await supabase

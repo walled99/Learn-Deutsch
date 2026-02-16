@@ -10,7 +10,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  Image,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -281,20 +280,6 @@ const VocabularyDetailScreen: React.FC = () => {
           </Card>
         )}
 
-        {/* Source Image */}
-        {vocabulary.image_url && (
-          <Card style={styles.imageCard}>
-            <Text style={styles.sectionTitle}>Source Image</Text>
-            <View style={styles.imageContainer}>
-              <Image
-                source={{ uri: vocabulary.image_url }}
-                style={styles.sourceImage}
-                resizeMode="cover"
-              />
-            </View>
-          </Card>
-        )}
-
         {/* Metadata */}
         <Card style={styles.metaCard}>
           <View style={styles.metaRow}>
@@ -462,17 +447,6 @@ const styles = StyleSheet.create({
     color: COLORS.text.secondary,
     fontStyle: "italic",
     lineHeight: 24,
-  },
-  imageCard: {
-    marginBottom: SPACING.lg,
-  },
-  imageContainer: {
-    borderRadius: RADIUS.lg,
-    overflow: "hidden",
-  },
-  sourceImage: {
-    width: "100%",
-    height: 200,
   },
   metaCard: {
     marginBottom: SPACING.xl,

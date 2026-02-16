@@ -70,8 +70,8 @@ export const useVocabulary = (initialFilters?: Partial<FilterState>) => {
   }, [loadStats]);
 
   const addVocabulary = useCallback(
-    async (formData: VocabularyFormData, imageUrl?: string) => {
-      const result = await createVocabulary(formData, imageUrl);
+    async (formData: VocabularyFormData) => {
+      const result = await createVocabulary(formData);
 
       if (result.success) {
         await loadVocabulary();

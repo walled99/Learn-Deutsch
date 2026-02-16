@@ -9,7 +9,7 @@ import React, {
   createContext,
   useContext,
 } from "react";
-import type { User, AuthState } from "../types";
+import type { User, AuthState, Profile } from "../types";
 import {
   signIn as authSignIn,
   signUp as authSignUp,
@@ -18,6 +18,7 @@ import {
   onAuthStateChange,
   resetPassword as authResetPassword,
 } from "../services/auth";
+import { supabase } from "../services/supabase";
 
 interface AuthContextType extends AuthState {
   signIn: (
@@ -53,25 +54,78 @@ export const useAuthProvider = () => {
   });
 
   useEffect(() => {
-    // Check initial session - no timeout for persistent login
+    let mounted = true;
+
+    // Use getSession() (local storage only, no network call) for fast init
     const initAuth = async () => {
       try {
-        const user = await getCurrentUser();
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (!mounted) return;
+
+        if (error || !session?.user) {
+          setState({
+            user: null,
+            isLoading: false,
+            isAuthenticated: false,
+          });
+          return;
+        }
+
+        // Build user from session data (no network needed)
+        const sessionUser = session.user;
+        const profile: Profile = {
+          id: sessionUser.id,
+          display_name: sessionUser.user_metadata?.display_name || null,
+          avatar_url: null,
+          updated_at: new Date().toISOString(),
+        };
 
         setState({
-          user,
+          user: {
+            id: sessionUser.id,
+            email: sessionUser.email || "",
+            profile,
+          },
           isLoading: false,
-          isAuthenticated: !!user,
+          isAuthenticated: true,
         });
+
+        // Fetch full profile from DB in background (non-blocking)
+        getCurrentUser()
+          .then((fullUser) => {
+            if (mounted && fullUser) {
+              setState((prev) => ({ ...prev, user: fullUser }));
+            }
+          })
+          .catch(() => {});
       } catch (error) {
         console.error("Auth initialization failed:", error);
-        setState({
-          user: null,
-          isLoading: false,
-          isAuthenticated: false,
-        });
+        if (mounted) {
+          setState({
+            user: null,
+            isLoading: false,
+            isAuthenticated: false,
+          });
+        }
       }
     };
+
+    // Safety timeout: if init takes too long, assume not authenticated
+    const timeout = setTimeout(() => {
+      if (mounted) {
+        setState((prev) => {
+          if (prev.isLoading) {
+            console.warn("Auth initialization timed out after 5s");
+            return { user: null, isLoading: false, isAuthenticated: false };
+          }
+          return prev;
+        });
+      }
+    }, 5000);
 
     initAuth();
 
@@ -79,14 +133,18 @@ export const useAuthProvider = () => {
     const {
       data: { subscription },
     } = onAuthStateChange((user) => {
-      setState({
-        user,
-        isLoading: false,
-        isAuthenticated: !!user,
-      });
+      if (mounted) {
+        setState({
+          user,
+          isLoading: false,
+          isAuthenticated: !!user,
+        });
+      }
     });
 
     return () => {
+      mounted = false;
+      clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, []);

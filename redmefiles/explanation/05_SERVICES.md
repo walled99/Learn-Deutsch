@@ -58,38 +58,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 ```typescript
 export const STORAGE_BUCKETS = {
-  sourceImages: "source-images", // For captured images
   avatars: "avatars", // For profile pictures
-};
-```
-
-### 4. Image Upload Function
-
-```typescript
-export const uploadImage = async (uri, bucket, path) => {
-  // Converts local URI to blob
-  const response = await fetch(uri);
-  const blob = await response.blob();
-
-  // Uploads to Supabase storage
-  const { data, error } = await supabase.storage
-    .from(bucket)
-    .upload(path, blob);
-
-  // Returns public URL
-  return { url: publicUrl, error: null };
-};
-```
-
-### 5. Get Signed URL (for private images)
-
-```typescript
-export const getSignedUrl = async (bucket, path, expiresIn = 3600) => {
-  // Gets temporary access URL for private files
-  const { data } = await supabase.storage
-    .from(bucket)
-    .createSignedUrl(path, expiresIn);
-  return data?.signedUrl;
 };
 ```
 
@@ -271,7 +240,6 @@ export const createVocabulary = async (formData, imageUrl?) => {
       example: formData.example,
       category: formData.category,
       status: formData.status || "New",
-      image_url: imageUrl,
     })
     .select()
     .single();
@@ -308,7 +276,7 @@ export const deleteVocabulary = async (id) => {
 ### 6. Bulk Create (AI Extraction)
 
 ```typescript
-export const bulkCreateVocabulary = async (items, imageUrl?) => {
+export const bulkCreateVocabulary = async (items) => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -316,7 +284,6 @@ export const bulkCreateVocabulary = async (items, imageUrl?) => {
   const insertData = items.map((item) => ({
     user_id: user.id,
     ...item,
-    image_url: imageUrl,
   }));
 
   const { data } = await supabase
@@ -467,7 +434,7 @@ export const someOperation = async () => {
 
 | File            | Purpose               | Key Functions                               |
 | --------------- | --------------------- | ------------------------------------------- |
-| `supabase.ts`   | Client setup, storage | `uploadImage`, `getSignedUrl`               |
+| `supabase.ts`   | Client setup, storage | `supabase` client, `STORAGE_BUCKETS`        |
 | `auth.ts`       | Authentication        | `signIn`, `signUp`, `signOut`               |
 | `vocabulary.ts` | CRUD operations       | `fetchVocabulary`, `createVocabulary`, etc. |
 | `index.ts`      | Export all            | Re-exports everything                       |

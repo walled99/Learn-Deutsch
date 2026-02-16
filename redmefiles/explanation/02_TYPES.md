@@ -105,7 +105,6 @@ export interface Vocabulary {
   example: string | null; // Example sentence
   category: WordCategory; // Noun/Verb/etc.
   status: MasteryStatus; // Learning progress
-  image_url: string | null; // Source image URL
   created_at: string; // When added
   updated_at?: string; // Last modified
 }
@@ -133,7 +132,6 @@ export interface Vocabulary {
 │   past_participle: "gegangen"                                │
 │                                                               │
 │ status: MasteryStatus ─── Learning progress                  │
-│ image_url: string ─────── Source image reference             │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -264,7 +262,7 @@ export type CaptureStackParamList = {
   Processing: { imageUri: string }; // Needs image path
   Review: {
     extractedWords: ExtractedWord[]; // AI results
-    imageUri: string; // Source image
+    imageUri: string; // Captured image for preview
   };
 };
 

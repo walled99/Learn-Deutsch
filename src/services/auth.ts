@@ -39,11 +39,27 @@ export const signUp = async (
         display_name: displayName || null,
       });
 
+      // Fetch profile to include in returned user
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", data.user.id)
+        .single();
+
+      // Last resort: build profile from provided name if DB fails
+      const finalProfile: Profile = profile || {
+        id: data.user.id,
+        display_name: displayName || null,
+        avatar_url: null,
+        updated_at: new Date().toISOString(),
+      };
+
       return {
         success: true,
         user: {
           id: data.user.id,
           email: data.user.email || "",
+          profile: finalProfile,
         },
       };
     }
@@ -71,11 +87,42 @@ export const signIn = async (
     if (error) throw error;
 
     if (data.user) {
+      // Fetch profile to include display_name
+      let { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", data.user.id)
+        .single();
+
+      // If profile doesn't exist yet, create it from auth metadata
+      if (!profile) {
+        const metaName = data.user.user_metadata?.display_name || null;
+        await supabase.from("profiles").upsert({
+          id: data.user.id,
+          display_name: metaName,
+        });
+        const { data: newProfile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", data.user.id)
+          .single();
+        profile = newProfile;
+      }
+
+      // Last resort: build profile from auth metadata if DB still fails
+      const finalProfile: Profile = profile || {
+        id: data.user.id,
+        display_name: data.user.user_metadata?.display_name || null,
+        avatar_url: null,
+        updated_at: new Date().toISOString(),
+      };
+
       return {
         success: true,
         user: {
           id: data.user.id,
           email: data.user.email || "",
+          profile: finalProfile,
         },
       };
     }
@@ -162,16 +209,39 @@ export const getCurrentUser = async (): Promise<User | null> => {
 
     if (user) {
       // Fetch profile
-      const { data: profile } = await supabase
+      let { data: profile } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
         .single();
 
+      // If profile doesn't exist, create it from auth metadata
+      if (!profile) {
+        const metaName = user.user_metadata?.display_name || null;
+        await supabase.from("profiles").upsert({
+          id: user.id,
+          display_name: metaName,
+        });
+        const { data: newProfile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        profile = newProfile;
+      }
+
+      // Last resort: build profile from auth metadata if DB still fails
+      const finalProfile: Profile = profile || {
+        id: user.id,
+        display_name: user.user_metadata?.display_name || null,
+        avatar_url: null,
+        updated_at: new Date().toISOString(),
+      };
+
       return {
         id: user.id,
         email: user.email || "",
-        profile: profile as Profile | undefined,
+        profile: finalProfile,
       };
     }
     return null;
@@ -234,8 +304,22 @@ export const updateProfile = async (
 export const onAuthStateChange = (callback: (user: User | null) => void) => {
   return supabase.auth.onAuthStateChange(async (event, session) => {
     if (session?.user) {
-      const user = await getCurrentUser();
-      callback(user);
+      try {
+        const user = await getCurrentUser();
+        callback(user);
+      } catch {
+        // Fallback: build user from session data if getCurrentUser fails
+        callback({
+          id: session.user.id,
+          email: session.user.email || "",
+          profile: {
+            id: session.user.id,
+            display_name: session.user.user_metadata?.display_name || null,
+            avatar_url: null,
+            updated_at: new Date().toISOString(),
+          },
+        });
+      }
     } else {
       callback(null);
     }

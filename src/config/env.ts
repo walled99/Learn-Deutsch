@@ -8,9 +8,8 @@
 
 // Supabase Configuration
 export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? "";
-export const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? "";
-export const SUPABASE_STORAGE_BUCKET =
-  process.env.EXPO_PUBLIC_SUPABASE_STORAGE_BUCKET ?? "source-images";
+export const SUPABASE_ANON_KEY =
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
 // Validate required env vars at startup
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {

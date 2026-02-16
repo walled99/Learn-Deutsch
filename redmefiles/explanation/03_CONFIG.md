@@ -28,14 +28,12 @@ Defines environment-specific configuration values that can change between develo
 ```typescript
 export const SUPABASE_URL = process.env.SUPABASE_URL || "https://...";
 export const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "eyJ...";
-export const SUPABASE_STORAGE_BUCKET = "source-images";
 ```
 
-| Variable                  | Purpose                        |
-| ------------------------- | ------------------------------ |
-| `SUPABASE_URL`            | Your Supabase project URL      |
-| `SUPABASE_ANON_KEY`       | Public API key for Supabase    |
-| `SUPABASE_STORAGE_BUCKET` | Storage bucket name for images |
+| Variable            | Purpose                     |
+| ------------------- | --------------------------- |
+| `SUPABASE_URL`      | Your Supabase project URL   |
+| `SUPABASE_ANON_KEY` | Public API key for Supabase |
 
 #### App Configuration
 
