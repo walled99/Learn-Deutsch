@@ -45,6 +45,16 @@ Managing the transition of words from "New" to "Mastered".
 - **Manual Promotion:** User manually changes status in the "Edit" screen.
 - **Auto-Promotion (Future):** After X correct quiz answers (Logic to be built in future Quiz Module).
 
-## 4. Technical Implementation
+### Phase 3.1: AI Integration (Completed)
+- **Model:** Gemini 2.5 Flash (v1 endpoint)
+- **Features:** 
+    - Full image-to-vocabulary extraction.
+    - Automatic categorization (Noun, Verb, etc.).
+    - German grammar parsing (Articles, Plurals, Past Participles).
+    - Robust JSON cleanup logic for multimodal responses.
+- **Connectivity:** Supports Expo Tunnel mode for seamless mobile testing.
+
+## Phase 3.2: Study & Mastery (Next Step)
+The goal is to implement the "Learn" tab to use the extracted vocabulary.
 - **Supabase Database Functions (RPC):** Move complex validation logic to PostgreSQL functions for performance.
 - **Triggers:** Automatically update `updated_at` timestamps on any change.

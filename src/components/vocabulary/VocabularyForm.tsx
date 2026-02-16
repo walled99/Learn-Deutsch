@@ -141,6 +141,18 @@ const VocabularyForm: React.FC<VocabularyFormProps> = ({
         </>
       )}
 
+      {/* Adjective/Adverb specific fields */}
+      {(formData.category === "Adjective" || formData.category === "Adverb") && (
+        <Input
+          label="Comparative Forms"
+          placeholder="e.g., schneller, am schnellsten"
+          value={formData.comparative || ""}
+          onChangeText={(value) => onChange("comparative", value)}
+          error={errors.comparative}
+          autoCapitalize="none"
+        />
+      )}
+
       {/* Translation - always required */}
       <Input
         label="English Translation"

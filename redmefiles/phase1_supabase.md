@@ -44,7 +44,7 @@ CREATE TYPE word_category AS ENUM ('Noun', 'Verb', 'Adjective', 'Adverb', 'Phras
 CREATE TYPE mastery_status AS ENUM ('New', 'Learning', 'Reviewing', 'Mastered');
 CREATE TYPE gender_article AS ENUM ('der', 'die', 'das');
 CREATE TYPE helper_verb AS ENUM ('haben', 'sein');
-2.3 Create the vocabulary Table
+### 2.3 Create the vocabulary Table (Status: Column 'comparative' removed from app service)
 CREATE TABLE vocabulary (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
@@ -59,8 +59,11 @@ CREATE TABLE vocabulary (
   status mastery_status DEFAULT 'New',
   image_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(user_id, word, category)  -- Prevent duplicate entries for the same user
+  UNIQUE(user_id, word, category)
 );
+
+> [!NOTE]
+> The `comparative` column was originally planned but removed from active service calls in February 2026 to ensure database compatibility.
 Key Design Decisions:
 
 Each vocabulary entry belongs to one authenticated user.

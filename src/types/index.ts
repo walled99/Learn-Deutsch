@@ -25,6 +25,7 @@ export interface Vocabulary {
   past_participle: string | null;
   translation: string;
   example: string | null;
+  comparative: string | null;
   category: WordCategory;
   status: MasteryStatus;
   image_url: string | null;
@@ -49,6 +50,7 @@ export interface VocabularyFormData {
   past_participle?: string;
   translation: string;
   example?: string;
+  comparative?: string;
   category: WordCategory;
   status: MasteryStatus;
 }
@@ -63,6 +65,7 @@ export interface ExtractedWord {
   past_participle?: string;
   translation: string;
   example?: string;
+  comparative?: string;
   category: WordCategory;
   confidence?: number;
 }
