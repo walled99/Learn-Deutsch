@@ -6,6 +6,8 @@
  *
  */
 
+import Constants from "expo-constants";
+
 // Supabase Configuration
 export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? "";
 export const SUPABASE_ANON_KEY =
@@ -15,13 +17,15 @@ export const SUPABASE_ANON_KEY =
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.warn(
     "[LernDeutsch] Missing Supabase environment variables. " +
-      "Please set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in your .env file.",
+    "Please set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in your .env file.",
   );
 }
 
 // App Configuration
 export const APP_NAME = "LernDeutsch AI";
-export const APP_VERSION = "1.0.0";
+
+// Read version from app.json via expo-constants (stays in sync automatically)
+export const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
 
 // Feature Flags
 declare const __DEV__: boolean;

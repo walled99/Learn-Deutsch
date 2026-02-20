@@ -13,6 +13,19 @@ export interface VocabularyResult {
 }
 
 /**
+ * Sanitize user search input to prevent query injection in Supabase .or() filters.
+ * Escapes special characters that could break or manipulate the filter string.
+ */
+const sanitizeSearchInput = (input: string): string => {
+  return input
+    .replace(/\\/g, "\\\\") // escape backslashes first
+    .replace(/%/g, "\\%")   // escape percent (LIKE wildcard)
+    .replace(/,/g, "")      // remove commas (Supabase filter separator)
+    .replace(/\./g, "")     // remove dots (Supabase operator separator)
+    .trim();
+};
+
+/**
  * Fetch all vocabulary for current user
  */
 export const fetchVocabulary = async (
@@ -34,9 +47,12 @@ export const fetchVocabulary = async (
     }
 
     if (filters?.searchQuery) {
-      query = query.or(
-        `word.ilike.%${filters.searchQuery}%,translation.ilike.%${filters.searchQuery}%`,
-      );
+      const safe = sanitizeSearchInput(filters.searchQuery);
+      if (safe.length > 0) {
+        query = query.or(
+          `word.ilike.%${safe}%,translation.ilike.%${safe}%`,
+        );
+      }
     }
 
     const { data, error } = await query;
@@ -44,9 +60,9 @@ export const fetchVocabulary = async (
     if (error) throw error;
 
     return { success: true, data: data as Vocabulary[] };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Fetch vocabulary error:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   }
 };
 
@@ -66,9 +82,9 @@ export const fetchVocabularyById = async (
     if (error) throw error;
 
     return { success: true, data: data as Vocabulary };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Fetch vocabulary by ID error:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   }
 };
 
@@ -105,9 +121,9 @@ export const createVocabulary = async (
     if (error) throw error;
 
     return { success: true, data: data as Vocabulary };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Create vocabulary error:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   }
 };
 
@@ -147,9 +163,9 @@ export const updateVocabulary = async (
     if (error) throw error;
 
     return { success: true, data: data as Vocabulary };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Update vocabulary error:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   }
 };
 
@@ -165,9 +181,9 @@ export const deleteVocabulary = async (
     if (error) throw error;
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Delete vocabulary error:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   }
 };
 
@@ -205,9 +221,9 @@ export const bulkCreateVocabulary = async (
     if (error) throw error;
 
     return { success: true, data: data as Vocabulary[] };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Bulk create vocabulary error:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   }
 };
 
@@ -251,9 +267,9 @@ export const updateMasteryStatus = async (
     if (error) throw error;
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Update mastery status error:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   }
 };
 
