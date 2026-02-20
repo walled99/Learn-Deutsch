@@ -4,13 +4,22 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, Image, Animated, Easing } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  Animated,
+  Easing,
+  Alert,
+} from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { ScreenContainer } from "../../components";
 import { COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from "../../theme";
+import { extractVocabularyFromImage } from "../../services/ai";
 import type { CaptureStackParamList, ExtractedWord } from "../../types";
 
 type ProcessingNavigationProp = NativeStackNavigationProp<
@@ -36,8 +45,8 @@ const ProcessingScreen: React.FC = () => {
   const progressAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  // Simulate progress step updates even while waiting for API
   useEffect(() => {
-    // Start pulse animation
     const pulse = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -56,68 +65,58 @@ const ProcessingScreen: React.FC = () => {
     );
     pulse.start();
 
-    // Simulate processing steps
     const stepInterval = setInterval(() => {
       setCurrentStep((prev) => {
-        if (prev < PROCESSING_STEPS.length - 1) {
+        if (prev < PROCESSING_STEPS.length - 2) {
+          // Stay at the last "real" processing step until AI finishes
           return prev + 1;
         }
         return prev;
       });
-    }, 1500);
+    }, 2000);
 
     // Progress animation
     Animated.timing(progressAnim, {
-      toValue: 1,
-      duration: PROCESSING_STEPS.length * 1500,
-      easing: Easing.linear,
+      toValue: 0.9, // Go up to 90% and wait for API
+      duration: 8000,
+      easing: Easing.out(Easing.ease),
       useNativeDriver: false,
     }).start();
 
-    // Simulate API call and navigate to review
-    const timeout = setTimeout(
-      () => {
-        // Mock extracted data - in real app, this would come from Gemini API
-        const mockExtractedWords: ExtractedWord[] = [
-          {
-            word: "Tisch",
-            article: "der",
-            plural: "Tische",
-            translation: "table",
-            example: "Der Tisch ist aus Holz.",
-            category: "Noun",
-            confidence: 0.95,
-          },
-          {
-            word: "gehen",
-            helper_verb: "sein",
-            past_participle: "gegangen",
-            translation: "to go",
-            example: "Ich bin nach Hause gegangen.",
-            category: "Verb",
-            confidence: 0.92,
-          },
-          {
-            word: "schnell",
-            translation: "fast, quick",
-            example: "Das Auto fährt sehr schnell.",
-            category: "Adjective",
-            confidence: 0.89,
-          },
-        ];
+    // Actual AI Call
+    const runAI = async () => {
+      try {
+        const result = await extractVocabularyFromImage(imageUri);
+        
+        if (result.success) {
+          setCurrentStep(PROCESSING_STEPS.length - 1); // Jump to "Preparing results"
+          
+          // Complete the bar
+          Animated.timing(progressAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: false,
+          }).start(() => {
+            navigation.replace("Review", {
+              extractedWords: result.words,
+              imageUri,
+            });
+          });
+        } else {
+          Alert.alert("AI Error", result.error || "Failed to extract vocabulary.");
+          navigation.goBack();
+        }
+      } catch (error) {
+        Alert.alert("Processing Error", "An unexpected error occurred.");
+        navigation.goBack();
+      }
+    };
 
-        navigation.replace("Review", {
-          extractedWords: mockExtractedWords,
-          imageUri,
-        });
-      },
-      PROCESSING_STEPS.length * 1500 + 500,
-    );
+    runAI();
 
     return () => {
       pulse.stop();
       clearInterval(stepInterval);
-      clearTimeout(timeout);
     };
   }, [navigation, imageUri, progressAnim, pulseAnim]);
 
