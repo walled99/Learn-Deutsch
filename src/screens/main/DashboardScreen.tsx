@@ -43,8 +43,7 @@ const DashboardScreen: React.FC = () => {
   };
 
   const recentVocabulary = vocabulary.slice(0, 5);
-  const displayName =
-    user?.profile?.display_name || user?.email?.split("@")[0] || "Learner";
+  const displayName = user?.profile?.display_name || "Learner";
 
   const getGreeting = () => {
     const hour = new Date().getHours();

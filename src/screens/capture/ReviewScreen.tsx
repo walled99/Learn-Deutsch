@@ -132,7 +132,7 @@ const ReviewScreen: React.FC = () => {
           status: "New",
         };
 
-        await addVocabulary(formData, imageUri);
+        await addVocabulary(formData);
       }
 
       Alert.alert(

@@ -185,7 +185,9 @@ Enter email → Tap Send → Loading →
 - Avatar with first letter
 - Display name
 - Email
-- Mini stats (Total, Mastered, Learning)
+- Mini stats:
+  - Total Words (gradient card)
+  - New, Learning, Reviewing, Mastered (status grid)
 
 **2. Account Settings:**
 
@@ -303,7 +305,7 @@ Grant permission → Frame text → Tap capture →
 
 **1. Image Preview:**
 
-- Source image thumbnail
+- Captured image thumbnail
 - "X words extracted" badge
 
 **2. Selection Controls:**
@@ -399,11 +401,7 @@ Grant permission → Frame text → Tap capture →
 
 - Example sentence
 
-**5. Source Image (if available):**
-
-- Captured image thumbnail
-
-**6. Actions:**
+**5. Actions:**
 
 - Edit button in header
 - Delete button at bottom

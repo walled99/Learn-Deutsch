@@ -92,7 +92,6 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 // ============ Storage Bucket Names ============
 export const STORAGE_BUCKETS = {
-  sourceImages: "source-images",
   avatars: "avatars",
 };
 

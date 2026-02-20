@@ -28,7 +28,6 @@ export interface Vocabulary {
   comparative: string | null;
   category: WordCategory;
   status: MasteryStatus;
-  image_url: string | null;
   created_at: string;
   updated_at?: string;
 }

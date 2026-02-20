@@ -88,35 +88,85 @@ const ProfileScreen: React.FC = () => {
         <Text style={styles.displayName}>{displayName}</Text>
         <Text style={styles.email}>{email}</Text>
 
-        {/* Mini Stats */}
-        <View style={styles.miniStats}>
-          <View style={styles.miniStatItem}>
-            <Text style={styles.miniStatNumber}>{stats?.total || 0}</Text>
-            <Text style={styles.miniStatLabel}>Words</Text>
-          </View>
-          <View style={styles.miniStatDivider} />
-          <View style={styles.miniStatItem}>
-            <Text
+        {/* Stats Section */}
+        <View style={styles.statsContainer}>
+          {/* Total Words - Main Card */}
+          <LinearGradient
+            colors={COLORS.primary.gradient}
+            style={styles.totalCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <Text style={styles.totalCardLabel}>Total Words</Text>
+            <Text style={styles.totalCardNumber}>{stats?.total || 0}</Text>
+          </LinearGradient>
+
+          {/* Status Breakdown */}
+          <View style={styles.statusGrid}>
+            <View
               style={[
-                styles.miniStatNumber,
-                { color: COLORS.mastery.mastered },
+                styles.statusCard,
+                { borderLeftColor: COLORS.mastery.new },
               ]}
             >
-              {stats?.byStatus?.Mastered || 0}
-            </Text>
-            <Text style={styles.miniStatLabel}>Mastered</Text>
-          </View>
-          <View style={styles.miniStatDivider} />
-          <View style={styles.miniStatItem}>
-            <Text
+              <Text
+                style={[styles.statusNumber, { color: COLORS.mastery.new }]}
+              >
+                {stats?.byStatus?.New || 0}
+              </Text>
+              <Text style={styles.statusLabel}>New</Text>
+            </View>
+
+            <View
               style={[
-                styles.miniStatNumber,
-                { color: COLORS.mastery.learning },
+                styles.statusCard,
+                { borderLeftColor: COLORS.mastery.learning },
               ]}
             >
-              {stats?.byStatus?.Learning || 0}
-            </Text>
-            <Text style={styles.miniStatLabel}>Learning</Text>
+              <Text
+                style={[
+                  styles.statusNumber,
+                  { color: COLORS.mastery.learning },
+                ]}
+              >
+                {stats?.byStatus?.Learning || 0}
+              </Text>
+              <Text style={styles.statusLabel}>Learning</Text>
+            </View>
+
+            <View
+              style={[
+                styles.statusCard,
+                { borderLeftColor: COLORS.mastery.reviewing },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.statusNumber,
+                  { color: COLORS.mastery.reviewing },
+                ]}
+              >
+                {stats?.byStatus?.Reviewing || 0}
+              </Text>
+              <Text style={styles.statusLabel}>Reviewing</Text>
+            </View>
+
+            <View
+              style={[
+                styles.statusCard,
+                { borderLeftColor: COLORS.mastery.mastered },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.statusNumber,
+                  { color: COLORS.mastery.mastered },
+                ]}
+              >
+                {stats?.byStatus?.Mastered || 0}
+              </Text>
+              <Text style={styles.statusLabel}>Mastered</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -300,31 +350,58 @@ const styles = StyleSheet.create({
   email: {
     ...TYPOGRAPHY.body,
     color: COLORS.text.muted,
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.lg,
   },
-  miniStats: {
-    flexDirection: "row",
-    backgroundColor: COLORS.surface.primary,
+  // Stats Container
+  statsContainer: {
+    width: "100%",
+    gap: SPACING.md,
+  },
+  totalCard: {
     borderRadius: RADIUS.xl,
-    paddingVertical: SPACING.base,
-    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
+    alignItems: "center",
+    ...SHADOWS.lg,
+  },
+  totalCardLabel: {
+    ...TYPOGRAPHY.label,
+    color: "rgba(255,255,255,0.9)",
+    marginBottom: SPACING.xs,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    fontWeight: "600",
+  },
+  totalCardNumber: {
+    fontSize: 48,
+    fontWeight: "bold",
+    color: COLORS.white,
+  },
+  statusGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: SPACING.sm,
+  },
+  statusCard: {
+    flex: 1,
+    minWidth: "47%",
+    backgroundColor: COLORS.surface.primary,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.base,
+    borderLeftWidth: 4,
     ...SHADOWS.sm,
   },
-  miniStatItem: {
-    alignItems: "center",
-    paddingHorizontal: SPACING.lg,
+  statusNumber: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: SPACING.xs / 2,
   },
-  miniStatDivider: {
-    width: 1,
-    backgroundColor: COLORS.border.default,
-  },
-  miniStatNumber: {
-    ...TYPOGRAPHY.h3,
-    color: COLORS.text.primary,
-  },
-  miniStatLabel: {
+  statusLabel: {
     ...TYPOGRAPHY.caption,
     color: COLORS.text.muted,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    fontWeight: "600",
   },
   // Sections
   section: {

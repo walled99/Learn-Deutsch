@@ -129,7 +129,7 @@ if (!isAuthenticated) {
 }
 
 // Use user data
-<Text>Hello, {user.email}</Text>
+<Text>Hello, {user.profile?.display_name}</Text>
 
 // Sign out
 <Button onPress={signOut} title="Logout" />
@@ -186,7 +186,7 @@ interface VocabularyHook {
 
   // Actions
   setFilters: (newFilters) => void;
-  addVocabulary: (formData, imageUrl?) => Promise<result>;
+  addVocabulary: (formData) => Promise<result>;
   editVocabulary: (id, formData) => Promise<result>;
   removeVocabulary: (id) => Promise<result>;
   refresh: () => Promise<void>;
@@ -246,8 +246,8 @@ useEffect(() => {
 ```typescript
 // Add new vocabulary
 const addVocabulary = useCallback(
-  async (formData, imageUrl?) => {
-    const result = await createVocabulary(formData, imageUrl);
+  async (formData) => {
+    const result = await createVocabulary(formData);
 
     if (result.success) {
       await loadVocabulary(); // Refresh list
