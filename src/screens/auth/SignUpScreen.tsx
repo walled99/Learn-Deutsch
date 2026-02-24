@@ -2,8 +2,16 @@
  * LernDeutsch AI - Sign Up Screen
  */
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+
+// Try to import haptics — graceful fallback if not installed
+let Haptics: any = null;
+try {
+  Haptics = require("expo-haptics");
+} catch {
+  // expo-haptics not installed
+}
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { LinearGradient } from "expo-linear-gradient";
@@ -11,6 +19,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { ScreenContainer, Input, Button, Header } from "../../components";
 import { useAuth } from "../../hooks";
 import { COLORS, TYPOGRAPHY, SPACING } from "../../theme";
+import {
+  isValidEmail,
+  getPasswordStrength,
+  getPasswordErrors,
+} from "../../utils/validation";
 import type { AuthStackParamList } from "../../types";
 
 type SignUpNavigationProp = NativeStackNavigationProp<
@@ -34,6 +47,11 @@ const SignUpScreen: React.FC = () => {
     confirmPassword?: string;
   }>({});
 
+  const passwordStrength = useMemo(
+    () => getPasswordStrength(password),
+    [password],
+  );
+
   const validateForm = () => {
     const newErrors: typeof errors = {};
 
@@ -43,14 +61,17 @@ const SignUpScreen: React.FC = () => {
 
     if (!email.trim()) {
       newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
+    } else if (!isValidEmail(email)) {
       newErrors.email = "Please enter a valid email";
     }
 
     if (!password) {
       newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    } else {
+      const pwErrors = getPasswordErrors(password);
+      if (pwErrors.length > 0) {
+        newErrors.password = pwErrors.join(", ");
+      }
     }
 
     if (password !== confirmPassword) {
@@ -64,15 +85,27 @@ const SignUpScreen: React.FC = () => {
   const handleSignUp = async () => {
     if (!validateForm()) return;
 
+    // Haptic feedback
+    try {
+      if (Haptics) await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch { }
+
     setIsLoading(true);
     const result = await signUp(email, password, displayName);
     setIsLoading(false);
 
     if (result.success) {
       Alert.alert(
-        "Account Created!",
-        "Please check your email to verify your account.",
-        [{ text: "OK" }],
+        "Account Created! ✨",
+        "We've sent a verification email to " +
+        email.trim() +
+        ". Please verify your email before signing in.",
+        [
+          {
+            text: "Go to Login",
+            onPress: () => navigation.navigate("Login"),
+          },
+        ],
       );
     } else {
       Alert.alert("Sign Up Failed", result.error || "Please try again.");
@@ -135,8 +168,33 @@ const SignUpScreen: React.FC = () => {
             leftIcon="lock-closed-outline"
             secureTextEntry
             showPasswordToggle
-            hint="At least 6 characters"
+            hint="At least 6 chars, 1 uppercase, 1 number"
           />
+
+          {/* Password Strength Indicator */}
+          {password.length > 0 && (
+            <View style={styles.strengthContainer}>
+              <View style={styles.strengthBarTrack}>
+                <View
+                  style={[
+                    styles.strengthBarFill,
+                    {
+                      width: `${((passwordStrength.score + 1) / 4) * 100}%`,
+                      backgroundColor: passwordStrength.color,
+                    },
+                  ]}
+                />
+              </View>
+              <Text
+                style={[
+                  styles.strengthLabel,
+                  { color: passwordStrength.color },
+                ]}
+              >
+                {passwordStrength.label}
+              </Text>
+            </View>
+          )}
 
           <Input
             label="Confirm Password"
@@ -208,6 +266,29 @@ const styles = StyleSheet.create({
   },
   form: {
     marginBottom: SPACING.xl,
+  },
+  strengthContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: SPACING.md,
+    marginTop: -SPACING.xs,
+  },
+  strengthBarTrack: {
+    flex: 1,
+    height: 4,
+    backgroundColor: COLORS.surface.secondary,
+    borderRadius: 2,
+    marginRight: SPACING.sm,
+    overflow: "hidden",
+  },
+  strengthBarFill: {
+    height: "100%",
+    borderRadius: 2,
+  },
+  strengthLabel: {
+    ...TYPOGRAPHY.bodySmall,
+    fontWeight: "600",
+    minWidth: 50,
   },
   signUpButton: {
     marginTop: SPACING.lg,
