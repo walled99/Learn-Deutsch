@@ -4,11 +4,20 @@
 
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
+
+// Try to import haptics — graceful fallback if not installed
+let Haptics: any = null;
+try {
+  Haptics = require("expo-haptics");
+} catch {
+  // expo-haptics not installed
+}
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { ScreenContainer, Input, Button, Header } from "../../components";
 import { useAuth } from "../../hooks";
 import { COLORS, TYPOGRAPHY, SPACING } from "../../theme";
+import { isValidEmail } from "../../utils/validation";
 
 const ForgotPasswordScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -24,7 +33,7 @@ const ForgotPasswordScreen: React.FC = () => {
       setError("Email is required");
       return false;
     }
-    if (!/\S+@\S+\.\S+/.test(email)) {
+    if (!isValidEmail(email)) {
       setError("Please enter a valid email");
       return false;
     }
@@ -34,6 +43,11 @@ const ForgotPasswordScreen: React.FC = () => {
 
   const handleResetPassword = async () => {
     if (!validateEmail()) return;
+
+    // Haptic feedback
+    try {
+      if (Haptics) await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch { }
 
     setIsLoading(true);
     const result = await resetPassword(email);
