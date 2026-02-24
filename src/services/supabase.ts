@@ -98,6 +98,19 @@ export const STORAGE_BUCKETS = {
 // ============ Helper Functions ============
 
 /**
+ * Detect MIME type from a file URI based on its extension.
+ */
+const detectImageMimeType = (uri: string): string => {
+  const lower = uri.toLowerCase();
+  if (lower.endsWith(".png")) return "image/png";
+  if (lower.endsWith(".gif")) return "image/gif";
+  if (lower.endsWith(".webp")) return "image/webp";
+  if (lower.endsWith(".bmp")) return "image/bmp";
+  if (lower.endsWith(".heic") || lower.endsWith(".heif")) return "image/heic";
+  return "image/jpeg";
+};
+
+/**
  * Upload an image to Supabase Storage
  */
 export const uploadImage = async (
@@ -108,11 +121,12 @@ export const uploadImage = async (
   try {
     const response = await fetch(uri);
     const blob = await response.blob();
+    const mimeType = detectImageMimeType(uri);
 
     const { data, error } = await supabase.storage
       .from(bucket)
       .upload(path, blob, {
-        contentType: "image/jpeg",
+        contentType: mimeType,
         upsert: false,
       });
 
@@ -123,9 +137,9 @@ export const uploadImage = async (
       .getPublicUrl(data.path);
 
     return { url: urlData.publicUrl, error: null };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Upload error:", error);
-    return { url: null, error: error as Error };
+    return { url: null, error: error instanceof Error ? error : new Error(String(error)) };
   }
 };
 
@@ -144,7 +158,7 @@ export const getSignedUrl = async (
 
     if (error) throw error;
     return data.signedUrl;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Signed URL error:", error);
     return null;
   }
