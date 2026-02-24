@@ -3,87 +3,13 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
-import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config/env";
-
-// ============ SecureStore Chunked Adapter for Auth ============
-// SecureStore has a 2048-byte limit per key, but Supabase session
-// JSON can be larger. This adapter splits values into chunks.
-const CHUNK_SIZE = 1800; // stay safely under 2048 bytes
-
-function getChunkKey(key: string, index: number): string {
-  return index === 0 ? key : `${key}__chunk_${index}`;
-}
-
-const SecureStoreAdapter = {
-  getItem: async (key: string): Promise<string | null> => {
-    try {
-      const firstChunk = await SecureStore.getItemAsync(key);
-      if (firstChunk === null) return null;
-
-      // Check if there are additional chunks
-      let result = firstChunk;
-      let index = 1;
-      while (true) {
-        const chunk = await SecureStore.getItemAsync(getChunkKey(key, index));
-        if (chunk === null) break;
-        result += chunk;
-        index++;
-      }
-      return result;
-    } catch (error) {
-      console.error("SecureStore getItem error:", error);
-      return null;
-    }
-  },
-  setItem: async (key: string, value: string): Promise<void> => {
-    try {
-      // Split value into chunks that fit within SecureStore limits
-      const chunks: string[] = [];
-      for (let i = 0; i < value.length; i += CHUNK_SIZE) {
-        chunks.push(value.slice(i, i + CHUNK_SIZE));
-      }
-
-      // Write all chunks
-      for (let i = 0; i < chunks.length; i++) {
-        await SecureStore.setItemAsync(getChunkKey(key, i), chunks[i]);
-      }
-
-      // Clean up any leftover chunks from a previously longer value
-      let cleanupIndex = chunks.length;
-      while (true) {
-        const old = await SecureStore.getItemAsync(
-          getChunkKey(key, cleanupIndex),
-        );
-        if (old === null) break;
-        await SecureStore.deleteItemAsync(getChunkKey(key, cleanupIndex));
-        cleanupIndex++;
-      }
-    } catch (error) {
-      console.error("SecureStore setItem error:", error);
-    }
-  },
-  removeItem: async (key: string): Promise<void> => {
-    try {
-      // Remove base key and all chunks
-      await SecureStore.deleteItemAsync(key);
-      let index = 1;
-      while (true) {
-        const chunk = await SecureStore.getItemAsync(getChunkKey(key, index));
-        if (chunk === null) break;
-        await SecureStore.deleteItemAsync(getChunkKey(key, index));
-        index++;
-      }
-    } catch (error) {
-      console.error("SecureStore removeItem error:", error);
-    }
-  },
-};
 
 // ============ Supabase Client ============
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    storage: SecureStoreAdapter,
+    storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
