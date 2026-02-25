@@ -13,6 +13,19 @@ export interface VocabularyResult {
 }
 
 /**
+ * Sanitize user search input to prevent query injection in Supabase .or() filters.
+ * Escapes special characters that could break or manipulate the filter string.
+ */
+const sanitizeSearchInput = (input: string): string => {
+  return input
+    .replace(/\\/g, "\\\\") // escape backslashes first
+    .replace(/%/g, "\\%")   // escape percent (LIKE wildcard)
+    .replace(/,/g, "")      // remove commas (Supabase filter separator)
+    .replace(/\./g, "")     // remove dots (Supabase operator separator)
+    .trim();
+};
+
+/**
  * Fetch all vocabulary for current user
  */
 export const fetchVocabulary = async (
@@ -34,9 +47,12 @@ export const fetchVocabulary = async (
     }
 
     if (filters?.searchQuery) {
-      query = query.or(
-        `word.ilike.%${filters.searchQuery}%,translation.ilike.%${filters.searchQuery}%`,
-      );
+      const safe = sanitizeSearchInput(filters.searchQuery);
+      if (safe.length > 0) {
+        query = query.or(
+          `word.ilike.%${safe}%,translation.ilike.%${safe}%`,
+        );
+      }
     }
 
     const { data, error } = await query;
