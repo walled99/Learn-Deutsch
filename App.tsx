@@ -18,7 +18,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // Providers
-import { AuthProvider } from "./src/hooks/useAuth";
+import { AuthProvider } from "./src/hooks";
 
 // Navigation
 import RootNavigator from "./src/navigation/RootNavigator";
